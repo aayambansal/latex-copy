@@ -11,7 +11,8 @@ ENV OVERLEAF_APP_NAME=InkVell \
     ENABLED_LINKED_FILE_TYPES=project_file,project_output_file \
     ENABLE_CONVERSIONS=true \
     OVERLEAF_BEHIND_PROXY=true \
-    OVERLEAF_SECURE_COOKIE=false
+    OVERLEAF_SECURE_COOKIE=false \
+    ALLOW_MONGO_ADMIN_CHECK_FAILURES=true
 
 # Copy custom branding files
 COPY overleaf/services/web/public/img/brand/ /overleaf/services/web/public/img/brand/

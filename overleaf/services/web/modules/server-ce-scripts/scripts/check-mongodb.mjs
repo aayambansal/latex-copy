@@ -17,11 +17,13 @@ function shouldSkipAdminChecks() {
 }
 
 function handleUnauthorizedError(err, feature) {
-  if (
-    err instanceof mongodb.MongoServerError &&
-    err.codeName === 'Unauthorized'
-  ) {
-    console.warn(`Warning: failed to check ${feature} (not authorised)`)
+  // Handle Unauthorized errors and Atlas tier limitations
+  const isUnauthorized = err instanceof mongodb.MongoServerError && err.codeName === 'Unauthorized'
+  const isAtlasError = err instanceof mongodb.MongoServerError && err.codeName === 'AtlasError'
+  
+  if (isUnauthorized || isAtlasError) {
+    const reason = isAtlasError ? 'Atlas tier limitation' : 'not authorised'
+    console.warn(`Warning: failed to check ${feature} (${reason})`)
     if (!shouldSkipAdminChecks()) {
       console.error(
         `Please ensure the MongoDB user has the required permissions, for more information see
