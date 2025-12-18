@@ -32,8 +32,21 @@ RUN echo '#!/bin/bash\necho "Skipping migrations for fresh InkVell deployment"\n
 RUN echo '#!/bin/bash\necho "Skipping doc version recovery for fresh InkVell deployment"\nexit 0' > /etc/my_init.d/910_initiate_doc_version_recovery && \
     chmod +x /etc/my_init.d/910_initiate_doc_version_recovery
 
-# Expose port 80
+# Railway uses PORT env var - configure nginx to listen on it
+# Create a startup script that updates nginx config based on PORT
+RUN echo '#!/bin/bash\n\
+if [ -n "$PORT" ]; then\n\
+  sed -i "s/listen 80;/listen $PORT;/g" /etc/nginx/sites-enabled/sharelatex.conf 2>/dev/null || true\n\
+  sed -i "s/listen 80;/listen $PORT;/g" /etc/nginx/sites-available/sharelatex.conf 2>/dev/null || true\n\
+fi\n\
+exec /sbin/my_init\n\
+' > /start.sh && chmod +x /start.sh
+
+# Expose port (Railway will override with PORT env var)
 EXPOSE 80
+
+# Use our custom start script
+CMD ["/start.sh"]
 
 # Disable Docker healthcheck - let Railway handle it
 HEALTHCHECK NONE
