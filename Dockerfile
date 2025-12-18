@@ -21,9 +21,12 @@ COPY overleaf/services/web/public/mask-favicon.svg /overleaf/services/web/public
 COPY overleaf/services/web/public/web.sitemanifest /overleaf/services/web/public/web.sitemanifest
 
 # Skip the MongoDB database check entirely for Atlas compatibility
-# The check script fails on Atlas free tier - replace it with a simple success script
 RUN echo '#!/bin/bash\necho "Skipping MongoDB check for Atlas compatibility"\nexit 0' > /etc/my_init.d/500_check_db_access.sh && \
     chmod +x /etc/my_init.d/500_check_db_access.sh
+
+# Skip migrations check for fresh deployment (no existing projects to migrate)
+RUN echo '#!/bin/bash\necho "Skipping migrations for fresh InkVell deployment"\nexit 0' > /etc/my_init.d/900_run_web_migrations.sh && \
+    chmod +x /etc/my_init.d/900_run_web_migrations.sh
 
 # Expose port 80
 EXPOSE 80
