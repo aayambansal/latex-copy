@@ -3,12 +3,15 @@
 
 FROM sharelatex/sharelatex:latest
 
-# Set InkVell branding
+# Set InkVell branding and defaults
+# Note: OVERLEAF_MONGO_URL and REDIS vars should be set via Railway env vars
 ENV OVERLEAF_APP_NAME=InkVell \
     OVERLEAF_ALLOW_PUBLIC_ACCESS=true \
     EMAIL_CONFIRMATION_DISABLED=true \
     ENABLED_LINKED_FILE_TYPES=project_file,project_output_file \
-    ENABLE_CONVERSIONS=true
+    ENABLE_CONVERSIONS=true \
+    OVERLEAF_BEHIND_PROXY=true \
+    OVERLEAF_SECURE_COOKIE=false
 
 # Copy custom branding files
 COPY overleaf/services/web/public/img/brand/ /overleaf/services/web/public/img/brand/
@@ -17,13 +20,10 @@ COPY overleaf/services/web/public/favicon.svg /overleaf/services/web/public/favi
 COPY overleaf/services/web/public/mask-favicon.svg /overleaf/services/web/public/mask-favicon.svg
 COPY overleaf/services/web/public/web.sitemanifest /overleaf/services/web/public/web.sitemanifest
 
-# Note: For full custom styling, the frontend needs to be rebuilt
-# The sharelatex/sharelatex image includes pre-built assets
-
-# Expose port (Railway will use PORT env var)
+# Expose port 80 (Railway handles port mapping)
 EXPOSE 80
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+# Increase healthcheck timeout for cold starts
+HEALTHCHECK --interval=30s --timeout=30s --start-period=300s --retries=10 \
     CMD curl -f http://localhost/health_check || exit 1
 
