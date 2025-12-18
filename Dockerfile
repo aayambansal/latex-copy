@@ -28,6 +28,10 @@ RUN echo '#!/bin/bash\necho "Skipping MongoDB check for Atlas compatibility"\nex
 RUN echo '#!/bin/bash\necho "Skipping migrations for fresh InkVell deployment"\nexit 0' > /etc/my_init.d/900_run_web_migrations.sh && \
     chmod +x /etc/my_init.d/900_run_web_migrations.sh
 
+# Skip doc version recovery for fresh deployment
+RUN echo '#!/bin/bash\necho "Skipping doc version recovery for fresh InkVell deployment"\nexit 0' > /etc/my_init.d/910_initiate_doc_version_recovery && \
+    chmod +x /etc/my_init.d/910_initiate_doc_version_recovery
+
 # Expose port 80
 EXPOSE 80
 
