@@ -1,0 +1,87 @@
+version: '3.8'
+
+# InkVell Production Deployment for Railway
+# This compose file is optimized for Railway deployment
+
+services:
+  # Main InkVell Web Application
+  inkvell:
+    build:
+      context: ./overleaf
+      dockerfile: server-ce/Dockerfile
+    environment:
+      OVERLEAF_APP_NAME: InkVell
+      OVERLEAF_MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017/inkvell}
+      OVERLEAF_REDIS_HOST: ${REDIS_HOST:-redis}
+      OVERLEAF_REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      ENABLED_LINKED_FILE_TYPES: 'project_file,project_output_file'
+      ENABLE_CONVERSIONS: 'true'
+      EMAIL_CONFIRMATION_DISABLED: 'true'
+      OVERLEAF_ALLOW_PUBLIC_ACCESS: 'true'
+      TEXLIVE_IMAGE: texlive/texlive:latest
+      # Railway will set PORT automatically
+      PORT: ${PORT:-80}
+    ports:
+      - "${PORT:-80}:80"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - inkvell-data:/var/lib/overleaf
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health_check"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # MongoDB Database
+  mongo:
+    image: mongo:5.0
+    command: --replSet inkvell
+    environment:
+      MONGO_INITDB_DATABASE: inkvell
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # MongoDB Replica Set Initializer
+  mongoinit:
+    image: mongo:5.0
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: >
+      mongosh mongo:27017 --eval "
+        try {
+          rs.status();
+        } catch (e) {
+          rs.initiate({ _id: 'inkvell', members: [{ _id: 0, host: 'mongo:27017' }] });
+        }
+      "
+    restart: "no"
+
+  # Redis Cache
+  redis:
+    image: redis:6.2-alpine
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  inkvell-data:
+  mongo-data:
+  redis-data:
+
