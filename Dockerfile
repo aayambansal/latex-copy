@@ -21,8 +21,8 @@ COPY overleaf/services/web/public/favicon.svg /overleaf/services/web/public/favi
 COPY overleaf/services/web/public/mask-favicon.svg /overleaf/services/web/public/mask-favicon.svg
 COPY overleaf/services/web/public/web.sitemanifest /overleaf/services/web/public/web.sitemanifest
 
-# Copy modified MongoDB check script (fixes Atlas free tier compatibility)
-COPY overleaf/services/web/modules/server-ce-scripts/scripts/check-mongodb.mjs /overleaf/services/web/modules/server-ce-scripts/scripts/check-mongodb.mjs
+# Patch MongoDB check script to handle Atlas free tier errors
+RUN sed -i "s/err.codeName === 'Unauthorized'/err.codeName === 'Unauthorized' || err.codeName === 'AtlasError'/g" /overleaf/services/web/modules/server-ce-scripts/scripts/check-mongodb.mjs
 
 # Expose port 80 (Railway handles port mapping)
 EXPOSE 80
