@@ -2,22 +2,37 @@ import { createClient } from '@supabase/supabase-js'
 import Settings from '@overleaf/settings'
 import logger from '@overleaf/logger'
 
-const SUPABASE_URL = Settings.supabase?.url || process.env.SUPABASE_URL || 'https://ikbtchgrensgpvzthwqp.supabase.co'
-// Use service role key for backend operations (bypasses RLS)
-const SUPABASE_SERVICE_KEY = Settings.supabase?.serviceKey || process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrYnRjaGdyZW5zZ3B2enRod3FwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjYwNTkxNywiZXhwIjoyMDgyMTgxOTE3fQ.HsXH0UCoxUGCqoX7WtSH2ai5gWIx-5kHOX1E5XZfwpY'
+const SUPABASE_URL = Settings.supabase?.url || process.env.SUPABASE_URL
+const SUPABASE_SERVICE_KEY = Settings.supabase?.serviceKey || process.env.SUPABASE_SERVICE_KEY
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
+// Only create Supabase client if credentials are provided
+// This makes Supabase optional - service won't crash if not configured
+let supabase = null
+if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+  try {
+    supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+    logger.info({}, 'Supabase client initialized')
+  } catch (err) {
+    logger.warn({ err }, 'Failed to initialize Supabase client - Google OAuth will not work')
   }
-})
+} else {
+  logger.warn({}, 'Supabase not configured - Google OAuth will not be available')
+}
 
 const SupabaseService = {
   /**
    * Get or create user in Supabase
    */
   async getUserByEmail(email) {
+    if (!supabase) {
+      logger.warn({ email }, 'Supabase not configured - cannot fetch user')
+      return null
+    }
     try {
       const { data, error } = await supabase
         .from('users')
@@ -41,6 +56,10 @@ const SupabaseService = {
    * Create user in Supabase
    */
   async createUser(userData) {
+    if (!supabase) {
+      logger.warn({ userData }, 'Supabase not configured - cannot create user')
+      return null
+    }
     try {
       const { data, error } = await supabase
         .from('users')
@@ -64,6 +83,10 @@ const SupabaseService = {
    * Update user in Supabase
    */
   async updateUser(userId, updates) {
+    if (!supabase) {
+      logger.warn({ userId, updates }, 'Supabase not configured - cannot update user')
+      return null
+    }
     try {
       const { data, error } = await supabase
         .from('users')
@@ -88,6 +111,10 @@ const SupabaseService = {
    * Get user by Google ID
    */
   async getUserByGoogleId(googleId) {
+    if (!supabase) {
+      logger.warn({ googleId }, 'Supabase not configured - cannot fetch user by Google ID')
+      return null
+    }
     try {
       const { data, error } = await supabase
         .from('users')
@@ -111,6 +138,10 @@ const SupabaseService = {
    * Get Supabase client (for advanced queries)
    */
   getClient() {
+    if (!supabase) {
+      logger.warn({}, 'Supabase not configured - cannot return client')
+      return null
+    }
     return supabase
   }
 }
