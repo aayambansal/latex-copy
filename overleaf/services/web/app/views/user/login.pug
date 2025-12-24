@@ -12,6 +12,21 @@ block content
 									h1 !{login_support_title}
 								else
 									h1 #{translate("log_in")} 
+							// Google OAuth Login Button (Primary)
+							.text-center.mb-4
+								a.btn.btn-primary(href='/auth/google' style='width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; font-size: 16px; font-weight: 500;')
+									svg(width='20' height='20' viewBox='0 0 18 18' xmlns='http://www.w3.org/2000/svg' style='flex-shrink: 0;')
+										g(fill='#fff' fill-rule='evenodd')
+											path(d='M9 3.48c1.69 0 2.83.73 3.48 1.34l2.54-2.48C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l2.91 2.26C4.6 5.05 6.62 3.48 9 3.48z' fill='#EA4335')
+											path(d='M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.21 1.18-.84 2.18-1.79 2.85l2.75 2.13c1.63-1.5 2.72-3.7 2.72-6.48z' fill='#4285F4')
+											path(d='M3.88 10.78A5.54 5.54 0 0 1 3.58 9c0-.62.11-1.22.29-1.78L.96 4.96A9.008 9.008 0 0 0 0 9c0 1.45.35 2.82.96 4.04l2.92-2.26z' fill='#FBBC05')
+											path(d='M9 18c2.43 0 4.47-.8 5.96-2.18l-2.75-2.13c-.76.53-1.78.9-3.21.9-2.38 0-4.4-1.57-5.12-3.74L.96 13.04C2.45 15.98 5.48 18 9 18z' fill='#34A853')
+									span Sign in with Google
+							
+							hr
+							.text-center.mb-3
+								small.text-muted or sign in with email
+							
 							form(name='loginForm' data-ol-async-form action='/login' method='POST')
 								input(name='_csrf' type='hidden' value=csrfToken)
 								+formMessagesNewStyle
@@ -21,13 +36,16 @@ block content
 										| #{translate('reset_password_link')}
 								+customFormMessageNewStyle('password-compromised')
 									| !{translate('password_compromised_try_again_or_use_known_device_or_reset', {}, [{name: 'a', attrs: {href: 'https://haveibeenpwned.com/passwords', rel: 'noopener noreferrer', target: '_blank'}}, {name: 'a', attrs: {href: '/user/password/reset', target: '_blank'}}])}.
+								+customFormMessageNewStyle('google_auth_failed', 'danger')
+									| Google authentication failed. Please try again.
+								+customFormMessageNewStyle('login_failed', 'danger')
+									| Login failed. Please try again.
 								.form-group
 									label(for='email') #{translate("email")}
 									input#email.form-control(
 										name='email'
 										type='email'
 										required
-										autofocus='true'
 										autocomplete='username'
 									)
 								.form-group
@@ -39,10 +57,32 @@ block content
 										required
 									)
 								.actions
-									button.btn-primary.btn(type='submit' data-ol-disabled-inflight)
+									button.btn-primary.btn(type='submit' data-ol-disabled-inflight style='width: 100%;')
 										span(data-ol-inflight='idle') #{translate("login")}
 										span(hidden data-ol-inflight='pending') #{translate("logging_in")}…
-									a.float-end(href='/user/password/reset') #{translate("forgot_your_password")}?
+									.text-center.mt-2
+										a(href='/user/password/reset') #{translate("forgot_your_password")}?
 								if login_support_text
 									hr
 									p.text-center !{login_support_text}
+							
+							script.
+								// Show error messages from URL query parameter
+								(function() {
+									const urlParams = new URLSearchParams(window.location.search);
+									const error = urlParams.get('error');
+									if (error) {
+										const errorMessages = {
+											'google_auth_failed': 'google_auth_failed',
+											'login_failed': 'login_failed'
+										};
+										const errorKey = errorMessages[error];
+										if (errorKey) {
+											const errorElement = document.querySelector('[data-ol-custom-form-message="' + errorKey + '"]');
+											if (errorElement) {
+												errorElement.removeAttribute('hidden');
+												errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+											}
+										}
+									}
+								})();

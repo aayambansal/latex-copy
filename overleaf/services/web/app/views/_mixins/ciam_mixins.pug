@@ -4,7 +4,7 @@ include recaptcha
 mixin ciamLogo
 	header.ciam-logo
 		a.brand.overleaf-ds-logo.ciam-image-link(href='/')
-			span.visually-hidden Overleaf
+			span.visually-hidden InkVell
 
 mixin ciamCardSeparator
 	hr.ciam-card-separator
@@ -39,7 +39,7 @@ mixin ciamCardFooter(short)
 						{
 							name: 'a',
 							attrs: {
-								href: 'https://www.overleaf.com/',
+								href: 'https://inkvell.ai/',
 								target: '_blank',
 								rel: 'noopener noreferrer',
 								'event-tracking-mb': 'true',
@@ -48,7 +48,7 @@ mixin ciamCardFooter(short)
 								'event-segmentation': {
 									product: 'overleaf',
 									item: 'overleaf',
-									destinationUrl: 'https://www.overleaf.com/'
+									destinationUrl: 'https://inkvell.ai/'
 								}
 							}
 						},
@@ -95,8 +95,8 @@ mixin ciamCustomFormDangerMessage(key)
 mixin ciamFooter
 	footer
 		.footer-links
-			a(href='https://www.overleaf.com/legal#Privacy') Privacy
-			a(href='https://www.overleaf.com/legal#Terms') Terms
+			a(href='https://inkvell.ai/legal#Privacy') Privacy
+			a(href='https://inkvell.ai/legal#Terms') Terms
 
 mixin ciamErrorNotification
 	.notification.notification-ds.notification-type-error(

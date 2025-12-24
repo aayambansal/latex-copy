@@ -65,6 +65,7 @@ import { plainTextResponse } from './infrastructure/Response.mjs'
 import SocketDiagnostics from './Features/SocketDiagnostics/SocketDiagnostics.mjs'
 import ClsiCacheController from './Features/Compile/ClsiCacheController.mjs'
 import AsyncLocalStorage from './infrastructure/AsyncLocalStorage.mjs'
+import passport from 'passport'
 
 const { renderUnsupportedBrowserPage, unsupportedBrowserMiddleware } =
   UnsupportedBrowserMiddleware
@@ -205,29 +206,53 @@ async function initialize(webRouter, privateApiRouter, publicApiRouter) {
   webRouter.get('*', AnalyticsRegistrationSourceMiddleware.setInbound())
   webRouter.get('*', AnalyticsUTMTrackingMiddleware.recordUTMTags())
 
-  // Redirect login/register to home - pages removed
-  webRouter.get('/login', (req, res) => res.redirect('/'))
-  webRouter.post('/login', (req, res) => res.redirect('/'))
-  webRouter.get('/register', (req, res) => res.redirect('/'))
-  webRouter.post('/register', (req, res) => res.redirect('/'))
-  
-  // Login routes removed - public access enabled
-  // webRouter.post(
-  //   '/login/can-skip-captcha',
-  //   RateLimiterMiddleware.rateLimit(rateLimiters.canSkipCaptcha),
-  //   CaptchaMiddleware.canSkipCaptcha
-  // )
+  // Login routes - enabled with Google OAuth
+  webRouter.get('/login', UserPagesController.loginPage)
+  AuthenticationController.addEndpointToLoginWhitelist('/login')
 
-  // webRouter.get('/login', UserPagesController.loginPage)
-  // AuthenticationController.addEndpointToLoginWhitelist('/login')
+  webRouter.post(
+    '/login',
+    RateLimiterMiddleware.rateLimit(overleafLoginRateLimiter),
+    RateLimiterMiddleware.loginRateLimitEmail(),
+    AuthenticationController.passportLogin
+  )
 
-  // webRouter.post(
-  //   '/login',
-  //   RateLimiterMiddleware.rateLimit(overleafLoginRateLimiter),
-  //   RateLimiterMiddleware.loginRateLimitEmail(),
-  //   CaptchaMiddleware.validateCaptcha('login'),
-  //   AuthenticationController.passportLogin
-  // )
+  // Google OAuth routes
+  webRouter.get(
+    '/auth/google',
+    passport.authenticate('google', {
+      scope: ['profile', 'email'],
+    })
+  )
+  AuthenticationController.addEndpointToLoginWhitelist('/auth/google')
+
+  webRouter.get(
+    '/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login?error=google_auth_failed' }),
+    async (req, res) => {
+      try {
+        if (!req.user) {
+          logger.warn({}, 'No user in request after Google OAuth')
+          return res.redirect('/login?error=login_failed')
+        }
+        
+        // Set audit info for login
+        AuthenticationController.setAuditInfo(req, {
+          method: 'Google OAuth login',
+        })
+        
+        await AuthenticationController.promises.finishLogin(req.user, req, res)
+      } catch (err) {
+        logger.err({ err, userId: req.user?._id }, 'Error finishing Google OAuth login')
+        res.redirect('/login?error=login_failed')
+      }
+    }
+  )
+  AuthenticationController.addEndpointToLoginWhitelist('/auth/google/callback')
+
+  // Registration routes
+  webRouter.get('/register', (req, res) => res.redirect('/login'))
+  webRouter.post('/register', (req, res) => res.redirect('/login'))
 
   webRouter.get(
     '/compromised-password',
@@ -243,22 +268,9 @@ async function initialize(webRouter, privateApiRouter, publicApiRouter) {
     SocketDiagnostics.index
   )
 
-  // Redirect legacy login to home - pages removed
-  webRouter.get('/login/legacy', (req, res) => res.redirect('/'))
-  webRouter.post('/login/legacy', (req, res) => res.redirect('/'))
-  
-  // Legacy login removed
-  // if (Settings.enableLegacyLogin) {
-  //   AuthenticationController.addEndpointToLoginWhitelist('/login/legacy')
-  //   webRouter.get('/login/legacy', UserPagesController.loginPage)
-  //   webRouter.post(
-  //     '/login/legacy',
-  //     RateLimiterMiddleware.rateLimit(overleafLoginRateLimiter),
-  //     RateLimiterMiddleware.loginRateLimitEmail(),
-  //     CaptchaMiddleware.validateCaptcha('login'),
-  //     AuthenticationController.passportLogin
-  //   )
-  // }
+  // Legacy login redirects
+  webRouter.get('/login/legacy', (req, res) => res.redirect('/login'))
+  webRouter.post('/login/legacy', (req, res) => res.redirect('/login'))
 
   webRouter.get(
     '/read-only/one-time-login',

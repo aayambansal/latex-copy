@@ -1,33 +1,45 @@
 #!/bin/bash
-# InkVell DigitalOcean Deployment Script
-# Run this on a fresh Ubuntu 22.04 droplet
-
+# Complete InkVell Deployment - Run Everything
 set -e
 
-echo "🚀 Installing InkVell on DigitalOcean..."
+echo "=========================================="
+echo "🚀 Complete InkVell Deployment"
+echo "=========================================="
+
+# Fix DNS
+echo "🔧 Fixing DNS..."
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 
 # Update system
-echo "📦 Updating system packages..."
-sudo apt-get update
-sudo apt-get upgrade -y
+echo "📦 Updating system..."
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -y
+apt-get upgrade -y -o Dpkg::Options::="--force-confold" 2>/dev/null || true
 
 # Install Docker
 echo "🐳 Installing Docker..."
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
+if ! command -v docker &> /dev/null; then
+    curl -fsSL https://get.docker.com | sh
+else
+    echo "Docker already installed"
+fi
 
 # Install Docker Compose
 echo "📦 Installing Docker Compose..."
-sudo apt-get install -y docker-compose-plugin
+apt-get install -y docker-compose-plugin
 
-# Clone the repository
+# Clone repository
 echo "📥 Cloning InkVell..."
 cd ~
-git clone https://github.com/aayambansal/latex-copy.git inkvell
-cd inkvell
+if [ -d "latex-copy" ]; then
+    rm -rf latex-copy
+fi
+git clone https://github.com/aayambansal/latex-copy.git
+cd latex-copy
 
-# Create docker-compose for production
-echo "📝 Creating production configuration..."
+# Create docker-compose file
+echo "📝 Creating configuration..."
 cat > docker-compose.prod.yml << 'EOF'
 version: '3.8'
 
@@ -103,28 +115,27 @@ volumes:
 EOF
 
 # Start services
-echo "🚀 Starting InkVell..."
-sudo docker compose -f docker-compose.prod.yml up -d
+echo "🚀 Starting InkVell (downloading ~2GB, please wait)..."
+docker compose -f docker-compose.prod.yml down 2>/dev/null || true
+docker compose -f docker-compose.prod.yml up -d
 
-# Wait for services to start
-echo "⏳ Waiting for services to initialize (this may take 2-3 minutes)..."
+# Wait and initialize
+echo "⏳ Waiting for services to start..."
 sleep 60
+docker compose -f docker-compose.prod.yml up mongoinit 2>/dev/null || true
+sleep 30
 
-# Check status
-echo "✅ Checking service status..."
-sudo docker compose -f docker-compose.prod.yml ps
-
+# Status
 echo ""
 echo "=========================================="
-echo "🎉 InkVell is now running!"
+echo "✅ Deployment Complete!"
 echo "=========================================="
 echo ""
-echo "Access your InkVell instance at:"
-echo "  http://$(curl -s ifconfig.me)"
+echo "🌐 Access InkVell at: http://64.23.188.40"
 echo ""
-echo "Useful commands:"
-echo "  View logs:     sudo docker compose -f docker-compose.prod.yml logs -f"
-echo "  Stop:          sudo docker compose -f docker-compose.prod.yml down"
-echo "  Restart:       sudo docker compose -f docker-compose.prod.yml restart"
+docker compose -f docker-compose.prod.yml ps
 echo ""
+echo "⏳ Wait 1-2 minutes, then refresh http://64.23.188.40"
+echo ""
+
 

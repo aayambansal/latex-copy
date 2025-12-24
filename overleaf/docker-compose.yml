@@ -2,6 +2,7 @@ services:
     inkvell:
         restart: always
         image: sharelatex/sharelatex:latest
+        platform: linux/amd64
         container_name: inkvell
         depends_on:
             mongo:
@@ -13,6 +14,9 @@ services:
         stop_grace_period: 60s
         volumes:
             - ~/inkvell_data:/var/lib/overleaf
+            # Mount only views and config files we changed for branding
+            - ./services/web/app/views:/overleaf/services/web/app/views
+            - ./services/web/config:/overleaf/services/web/config
             ########################################################################
             ####  Uncomment the following line to mount the docker socket,    ####
             ####  required for Sibling Containers to work                      ####
@@ -42,10 +46,23 @@ services:
             ## Set for SSL via nginx-proxy
             #VIRTUAL_HOST: 103.112.212.22
 
-            # OVERLEAF_SITE_URL: http://inkvell.example.com
-            # OVERLEAF_NAV_TITLE: InkVell
+            # Site URL - use http://localhost for local dev, https://pancakes.inkvell.ai for production
+            OVERLEAF_SITE_URL: http://localhost
+            OVERLEAF_NAV_TITLE: InkVell
             # OVERLEAF_HEADER_IMAGE_URL: http://example.com/mylogo.png
             # OVERLEAF_ADMIN_EMAIL: support@it.com
+
+            # Supabase Configuration
+            SUPABASE_URL: https://ikbtchgrensgpvzthwqp.supabase.co
+            SUPABASE_SERVICE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrYnRjaGdyZW5zZ3B2enRod3FwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjYwNTkxNywiZXhwIjoyMDgyMTgxOTE3fQ.HsXH0UCoxUGCqoX7WtSH2ai5gWIx-5kHOX1E5XZfwpY
+            SUPABASE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrYnRjaGdyZW5zZ3B2enRod3FwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MDU5MTcsImV4cCI6MjA4MjE4MTkxN30.Aaqm3nXZMNodceFI38JGT15lkwwMi_VFWm1y4lNGFNM
+
+            # Google OAuth Configuration
+            # Replace with your actual credentials from Google Cloud Console
+            GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-YOUR_GOOGLE_CLIENT_ID}
+            GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-YOUR_GOOGLE_CLIENT_SECRET}
+            # Use http://localhost/auth/google/callback for local dev, https://pancakes.inkvell.ai/auth/google/callback for production
+            GOOGLE_CALLBACK_URL: http://localhost/auth/google/callback
 
             # OVERLEAF_LEFT_FOOTER: '[{"text": "Another page I want to link to can be found <a href=\"here\">here</a>"} ]'
             # OVERLEAF_RIGHT_FOOTER: '[{"text": "Hello I am on the Right"} ]'
@@ -77,14 +94,12 @@ services:
             ## so the following environment variables must be commented out to avoid compile issues.
             ##
             ## Sandboxed Compiles: https://docs.overleaf.com/on-premises/configuration/overleaf-toolkit/server-pro-only-configuration/sandboxed-compiles
-            SANDBOXED_COMPILES: 'true'
-            ### Bind-mount source for /var/lib/overleaf/data/compiles inside the container.
-            SANDBOXED_COMPILES_HOST_DIR_COMPILES: '${HOME}/inkvell_data/data/compiles'
-            ### Bind-mount source for /var/lib/overleaf/data/output inside the container.
-            SANDBOXED_COMPILES_HOST_DIR_OUTPUT: '${HOME}/inkvell_data/data/output'
-            ### Backwards compatibility (before Server Pro 5.5)
-            DOCKER_RUNNER: 'true'
-            SANDBOXED_COMPILES_SIBLING_CONTAINERS: 'true'
+            ## Disabled for local development - uncomment and mount Docker socket if needed
+            # SANDBOXED_COMPILES: 'true'
+            # SANDBOXED_COMPILES_HOST_DIR_COMPILES: '${HOME}/inkvell_data/data/compiles'
+            # SANDBOXED_COMPILES_HOST_DIR_OUTPUT: '${HOME}/inkvell_data/data/output'
+            # DOCKER_RUNNER: 'true'
+            # SANDBOXED_COMPILES_SIBLING_CONTAINERS: 'true'
 
             ## Works with test LDAP server shown at bottom of docker compose
             # OVERLEAF_LDAP_URL: 'ldap://ldap:389'
@@ -105,7 +120,8 @@ services:
 
     mongo:
         restart: always
-        image: mongo:6.0
+        image: mongo:8.0
+        platform: linux/amd64
         container_name: mongo
         command: '--replSet inkvell'
         volumes:
@@ -118,10 +134,30 @@ services:
           # This override is not needed when running the setup after starting up mongo.
           - mongo:127.0.0.1
         healthcheck:
-            test: echo 'db.stats().ok' | mongosh localhost:27017/test --quiet
+            test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
             interval: 10s
             timeout: 10s
             retries: 5
+            start_period: 40s
+
+    mongoinit:
+        image: mongo:8.0
+        platform: linux/amd64
+        container_name: mongoinit
+        depends_on:
+            mongo:
+                condition: service_healthy
+        command: >
+            mongosh mongo:27017 --eval "
+                try {
+                    rs.status();
+                    print('Replica set already initialized');
+                } catch (e) {
+                    rs.initiate({ _id: 'inkvell', members: [{ _id: 0, host: 'mongo:27017' }] });
+                    print('Replica set initialized');
+                }
+            "
+        restart: "no"
 
     redis:
         restart: always

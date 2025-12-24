@@ -31,6 +31,7 @@ import AuthenticationController from '../Features/Authentication/AuthenticationC
 import SessionManager from '../Features/Authentication/SessionManager.mjs'
 import AdminAuthorizationHelper from '../Features/Helpers/AdminAuthorizationHelper.mjs'
 import Modules from './Modules.mjs'
+import setupGoogleStrategy from '../Features/Authentication/GoogleOAuthStrategy.mjs'
 import expressLocals from './ExpressLocals.mjs'
 import noCache from 'nocache'
 import os from 'node:os'
@@ -221,6 +222,10 @@ passport.use(
     AuthenticationController.doPassportLogin
   )
 )
+
+// Setup Google OAuth Strategy
+setupGoogleStrategy()
+
 passport.serializeUser(AuthenticationController.serializeUser)
 passport.deserializeUser(AuthenticationController.deserializeUser)
 

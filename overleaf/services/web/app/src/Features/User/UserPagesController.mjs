@@ -219,9 +219,6 @@ const UserPagesController = {
   },
 
   loginPage(req, res) {
-    // Login page removed - redirect to home
-    res.redirect('/')
-    return
     // if user is being sent to /login with explicit redirect (redir=/foo),
     // such as being sent from the editor to /login, then set the redirect explicitly
     if (
@@ -235,10 +232,12 @@ const UserPagesController = {
       metadata.robotsNoindexNofollow = true
     }
     res.render('user/login', {
-      title: Settings.nav?.login_support_title || 'login',
+      title: Settings.nav?.login_support_title || 'Sign In',
       login_support_title: Settings.nav?.login_support_title,
       login_support_text: Settings.nav?.login_support_text,
       metadata,
+      googleAuthEnabled: true,
+      error: req.query.error,
     })
   },
 
@@ -246,7 +245,7 @@ const UserPagesController = {
    * Landing page for users who may have received one-time login
    * tokens from the read-only maintenance site.
    *
-   * We tell them that Overleaf is back up and that they can login normally.
+   * We tell them that InkVell is back up and that they can login normally.
    */
   oneTimeLoginPage(req, res, next) {
     res.render('user/one_time_login')
