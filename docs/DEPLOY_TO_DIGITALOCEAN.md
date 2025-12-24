@@ -1,14 +1,12 @@
 # 🚀 Deploy InkVell to DigitalOcean
 
-## Quick Deploy (Recommended)
+## ✅ Code is Committed & Pushed
 
-### Step 1: Commit & Push Changes
+All changes have been successfully pushed to GitHub: `https://github.com/aayambansal/latex-copy`
 
-All changes have been committed and pushed to GitHub.
+## 🚀 Deploy to DigitalOcean
 
-### Step 2: Deploy to DigitalOcean
-
-**Option A: One-Command Deploy (Easiest)**
+### Option 1: Fresh Deployment (New Server)
 
 SSH into your DigitalOcean droplet and run:
 
@@ -16,107 +14,167 @@ SSH into your DigitalOcean droplet and run:
 curl -fsSL https://raw.githubusercontent.com/aayambansal/latex-copy/main/scripts/complete-deploy.sh | bash
 ```
 
-**Option B: Manual Deploy**
+This will:
+- Install Docker & Docker Compose
+- Clone the latest code
+- Set up and start all services
+- Configure everything automatically
 
-1. **SSH into your droplet:**
-   ```bash
-   ssh root@YOUR_DROPLET_IP
-   ```
+### Option 2: Update Existing Deployment
 
-2. **Clone the latest code:**
-   ```bash
-   cd ~
-   rm -rf inkvell  # Remove old version if exists
-   git clone https://github.com/aayambansal/latex-copy.git inkvell
-   cd inkvell/overleaf
-   ```
-
-3. **Update docker-compose.yml for production:**
-   
-   Edit `docker-compose.yml` and update:
-   - `OVERLEAF_SITE_URL` to your domain (e.g., `https://pancakes.inkvell.ai`)
-   - `GOOGLE_CALLBACK_URL` to `https://pancakes.inkvell.ai/auth/google/callback`
-   - Add your production environment variables
-
-4. **Start services:**
-   ```bash
-   docker compose down  # Stop old version
-   docker compose pull  # Pull latest images
-   docker compose up -d # Start new version
-   ```
-
-5. **Verify deployment:**
-   ```bash
-   docker compose ps
-   docker compose logs -f inkvell
-   ```
-
-## Update Existing Deployment
-
-If you already have InkVell running on DigitalOcean:
+If you already have InkVell running:
 
 ```bash
-# SSH into your droplet
+# 1. SSH into your droplet
 ssh root@YOUR_DROPLET_IP
 
-# Navigate to project
+# 2. Navigate to project directory
 cd ~/inkvell/overleaf  # or wherever you cloned it
 
-# Pull latest changes
+# 3. Pull latest changes
 git pull origin main
 
-# Restart services with new code
+# 4. Stop old services
 docker compose down
+
+# 5. Update docker-compose.yml with your credentials
+# Edit docker-compose.yml and set:
+#   - GOOGLE_CLIENT_ID: your_actual_client_id
+#   - GOOGLE_CLIENT_SECRET: your_actual_client_secret
+#   - OVERLEAF_SITE_URL: https://pancakes.inkvell.ai
+#   - GOOGLE_CALLBACK_URL: https://pancakes.inkvell.ai/auth/google/callback
+
+# 6. Start services with updated code
 docker compose up -d
 
-# Check status
+# 7. Verify deployment
 docker compose ps
 docker compose logs -f inkvell
 ```
 
-## Production Configuration
+### Option 3: Manual Step-by-Step
 
-Make sure to update these in `docker-compose.yml`:
+1. **SSH into droplet:**
+   ```bash
+   ssh root@YOUR_DROPLET_IP
+   ```
 
-```yaml
-environment:
-  OVERLEAF_SITE_URL: https://pancakes.inkvell.ai
-  GOOGLE_CALLBACK_URL: https://pancakes.inkvell.ai/auth/google/callback
-  OVERLEAF_APP_NAME: InkVell
-  # ... other settings
+2. **Clone/Update repository:**
+   ```bash
+   cd ~
+   rm -rf inkvell  # Remove old if exists
+   git clone https://github.com/aayambansal/latex-copy.git inkvell
+   cd inkvell/overleaf
+   ```
+
+3. **Configure environment variables:**
+   
+   Edit `docker-compose.yml` and update these values:
+   ```yaml
+   environment:
+     OVERLEAF_SITE_URL: https://pancakes.inkvell.ai
+     GOOGLE_CALLBACK_URL: https://pancakes.inkvell.ai/auth/google/callback
+     GOOGLE_CLIENT_ID: your_actual_google_client_id
+     GOOGLE_CLIENT_SECRET: your_actual_google_client_secret
+     SUPABASE_URL: your_supabase_url
+     SUPABASE_SERVICE_KEY: your_supabase_service_key
+   ```
+
+4. **Start services:**
+   ```bash
+   docker compose up -d
+   ```
+
+5. **Wait for services to start:**
+   ```bash
+   sleep 60
+   docker compose ps
+   ```
+
+6. **Check logs:**
+   ```bash
+   docker compose logs -f inkvell
+   ```
+
+## 🔧 Production Configuration Checklist
+
+Before deploying, make sure:
+
+- [ ] **Google OAuth** - Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `docker-compose.yml`
+- [ ] **Site URL** - Set `OVERLEAF_SITE_URL` to your domain (e.g., `https://pancakes.inkvell.ai`)
+- [ ] **Callback URL** - Set `GOOGLE_CALLBACK_URL` to match your domain
+- [ ] **Google Console** - Add redirect URI: `https://pancakes.inkvell.ai/auth/google/callback`
+- [ ] **Supabase** - Set `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` if using Supabase
+- [ ] **DNS** - Point your domain to the droplet IP
+- [ ] **SSL** - Set up SSL certificate (Let's Encrypt via Certbot)
+
+## 📋 Post-Deployment Steps
+
+1. **Verify deployment:**
+   ```bash
+   curl -I https://pancakes.inkvell.ai
+   ```
+
+2. **Test login:**
+   - Visit: `https://pancakes.inkvell.ai/login`
+   - Should see "Sign in with Google" button
+   - Should see "InkVell" branding (not Overleaf)
+
+3. **Test compilation:**
+   - Create a test project
+   - Try compiling a LaTeX document
+   - Should work without errors
+
+## 🔄 Update Existing Deployment
+
+To update an existing deployment with new code:
+
+```bash
+# On your DigitalOcean droplet
+cd ~/inkvell/overleaf
+git pull origin main
+docker compose down
+docker compose up -d
+docker compose logs -f inkvell
 ```
 
-## Verify Deployment
-
-1. Visit your domain: `https://pancakes.inkvell.ai`
-2. Check login page has Google OAuth button
-3. Verify branding shows "InkVell" not "Overleaf"
-4. Test compilation works
-
-## Troubleshooting
+## 🐛 Troubleshooting
 
 **Services won't start?**
 ```bash
 docker compose logs -f
 ```
 
-**Need to rebuild?**
+**Code not updating?**
 ```bash
-docker compose down
-docker compose build --no-cache
-docker compose up -d
+git pull origin main
+docker compose restart inkvell
 ```
 
-**Check if code is updated:**
+**Check if latest code is deployed:**
 ```bash
 cd ~/inkvell
 git log -1  # Should show latest commit
 ```
 
-## Next Steps
+**View service status:**
+```bash
+docker compose ps
+```
 
-1. ✅ Code is committed and pushed to GitHub
-2. ✅ Deploy to DigitalOcean using commands above
-3. ✅ Update Google OAuth redirect URI in Google Cloud Console
-4. ✅ Test login and compilation
+## 📝 Important Notes
 
+- **Secrets removed from code** - You must set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` as environment variables
+- **Local development** - Uses `http://localhost` URLs
+- **Production** - Must use `https://pancakes.inkvell.ai` URLs
+- **Google OAuth** - Must add redirect URI in Google Cloud Console
+
+## 🎯 Quick Reference
+
+**Deploy:** `curl -fsSL https://raw.githubusercontent.com/aayambansal/latex-copy/main/scripts/complete-deploy.sh | bash`
+
+**Update:** `cd ~/inkvell/overleaf && git pull && docker compose restart`
+
+**Logs:** `docker compose logs -f inkvell`
+
+**Status:** `docker compose ps`
