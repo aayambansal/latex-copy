@@ -21,13 +21,13 @@ function ChatToggleButton({
     <div className="toolbar-item">
       <button type="button" className={classes} onClick={onClick}>
         <MaterialIcon
-          type="chat"
+          type="auto_awesome"
           className={classNames('align-middle', {
             bounce: hasUnreadMessages,
           })}
         />
         {hasUnreadMessages && <OLBadge bg="info">{unreadMessageCount}</OLBadge>}
-        <p className="toolbar-label">{t('chat')}</p>
+        <p className="toolbar-label">AI</p>
       </button>
     </div>
   )

@@ -35,6 +35,7 @@ import ExportsController from './Features/Exports/ExportsController.mjs'
 import PasswordResetRouter from './Features/PasswordReset/PasswordResetRouter.mjs'
 import StaticPagesRouter from './Features/StaticPages/StaticPagesRouter.mjs'
 import ChatController from './Features/Chat/ChatController.mjs'
+import AiController from './Features/Ai/AiController.mjs'
 import Modules from './infrastructure/Modules.mjs'
 import {
   RateLimiter,
@@ -184,6 +185,10 @@ const rateLimiters = {
   }),
   sendChatMessage: new RateLimiter('send-chat-message', {
     points: 100,
+    duration: 60,
+  }),
+  aiChat: new RateLimiter('ai-chat', {
+    points: 30,
     duration: 60,
   }),
   statusCompiler: new RateLimiter('status-compiler', {
@@ -547,6 +552,14 @@ async function initialize(webRouter, privateApiRouter, publicApiRouter) {
     Settings.allowPublicAccess ? (req, res, next) => next() : AuthenticationController.requireLogin(),
     RateLimiterMiddleware.rateLimit(rateLimiters.getProjects),
     ProjectListController.getProjectsJson
+  )
+
+  // InkVell AI (Claude)
+  webRouter.post(
+    '/api/ai/chat',
+    AuthenticationController.requireLogin(),
+    RateLimiterMiddleware.rateLimit(rateLimiters.aiChat),
+    AiController.chat
   )
 
   for (const route of [

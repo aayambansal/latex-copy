@@ -1,62 +1,120 @@
 // ============================================
-// INKVELL - Production Ready Theme
-// A clean, professional LaTeX editor
+// INKVELL - Dark Theme
+// A sleek, modern LaTeX editor
 // ============================================
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
 // ============================================
-// COLOR SYSTEM
+// COLOR SYSTEM - Charcoal Dark
 // ============================================
 
-// Neutrals
-$white: #ffffff;
-$gray-50: #f9fafb;
-$gray-100: #f3f4f6;
-$gray-200: #e5e7eb;
-$gray-300: #d1d5db;
-$gray-400: #9ca3af;
-$gray-500: #6b7280;
-$gray-600: #4b5563;
-$gray-700: #374151;
-$gray-800: #1f2937;
-$gray-900: #111827;
-$black: #000000;
+// Base colors
+$ink-black: #0a0a0a;
+$ink-surface-1: #121212;
+$ink-surface-2: #1a1a1a;
+$ink-surface-3: #242424;
+$ink-surface-4: #2e2e2e;
+$ink-border: #2a2a2a;
+$ink-border-light: #3a3a3a;
 
-// Brand
-$brand-primary: #111827;
-$brand-accent: #2563eb;
+// Text colors
+$ink-text-primary: #fafafa;
+$ink-text-secondary: #a1a1a1;
+$ink-text-tertiary: #6b6b6b;
+$ink-text-muted: #525252;
 
-// Semantic
-$success: #059669;
-$warning: #d97706;
-$danger: #dc2626;
-$info: #0284c7;
+// Accent colors
+$ink-accent: #3b82f6;
+$ink-accent-hover: #60a5fa;
+$ink-accent-muted: rgba(59, 130, 246, 0.15);
+
+// Semantic colors
+$ink-success: #22c55e;
+$ink-success-bg: rgba(34, 197, 94, 0.1);
+$ink-warning: #f59e0b;
+$ink-warning-bg: rgba(245, 158, 11, 0.1);
+$ink-danger: #ef4444;
+$ink-danger-bg: rgba(239, 68, 68, 0.1);
+$ink-info: #06b6d4;
+$ink-info-bg: rgba(6, 182, 212, 0.1);
+
+// Grid pattern color
+$ink-grid-line: rgba(255, 255, 255, 0.03);
 
 // ============================================
-// TYPOGRAPHY
+// TYPOGRAPHY - Geist
 // ============================================
 
-$font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-$font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Liberation Mono', monospace;
+$font-geist: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+$font-geist-mono: 'Geist Mono', 'SF Mono', 'Consolas', 'Liberation Mono', monospace;
+
+// ============================================
+// CSS VARIABLES
+// ============================================
+
+:root {
+  --ink-black: #{$ink-black};
+  --ink-surface-1: #{$ink-surface-1};
+  --ink-surface-2: #{$ink-surface-2};
+  --ink-surface-3: #{$ink-surface-3};
+  --ink-surface-4: #{$ink-surface-4};
+  --ink-border: #{$ink-border};
+  --ink-border-light: #{$ink-border-light};
+  --ink-text-primary: #{$ink-text-primary};
+  --ink-text-secondary: #{$ink-text-secondary};
+  --ink-text-tertiary: #{$ink-text-tertiary};
+  --ink-accent: #{$ink-accent};
+  --ink-accent-hover: #{$ink-accent-hover};
+  --ink-grid-line: #{$ink-grid-line};
+}
+
+// ============================================
+// GRID BACKGROUND PATTERN
+// ============================================
+
+@mixin ink-grid-background {
+  background-color: $ink-black;
+  background-image:
+    linear-gradient(to right, $ink-grid-line 1px, transparent 1px),
+    linear-gradient(to bottom, $ink-grid-line 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+@mixin ink-grid-background-surface {
+  background-color: $ink-surface-1;
+  background-image:
+    linear-gradient(to right, $ink-grid-line 1px, transparent 1px),
+    linear-gradient(to bottom, $ink-grid-line 1px, transparent 1px);
+  background-size: 40px 40px;
+}
 
 // ============================================
 // BASE STYLES
 // ============================================
 
+html {
+  background-color: $ink-black !important;
+}
+
 body {
-  font-family: $font-sans !important;
-  background-color: $white !important;
-  color: $gray-900 !important;
+  font-family: $font-geist !important;
+  background-color: $ink-black !important;
+  color: $ink-text-primary !important;
   line-height: 1.6 !important;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-// Remove any overlays or textures
-body::before,
-body::after {
-  display: none !important;
+// Apply grid pattern to main backgrounds
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: -1;
+  @include ink-grid-background;
 }
 
 // ============================================
@@ -64,10 +122,11 @@ body::after {
 // ============================================
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: $font-sans !important;
+  font-family: $font-geist !important;
   font-weight: 600 !important;
-  color: $gray-900 !important;
+  color: $ink-text-primary !important;
   line-height: 1.3 !important;
+  letter-spacing: -0.02em !important;
 }
 
 h1 { font-size: 2rem !important; }
@@ -76,21 +135,23 @@ h3 { font-size: 1.25rem !important; }
 h4 { font-size: 1.125rem !important; }
 
 p {
-  color: $gray-600 !important;
+  color: $ink-text-secondary !important;
   line-height: 1.6 !important;
 }
 
 a {
-  color: $brand-accent !important;
+  color: $ink-accent !important;
   text-decoration: none !important;
+  transition: color 0.15s ease !important;
   
   &:hover {
-    text-decoration: underline !important;
+    color: $ink-accent-hover !important;
+    text-decoration: none !important;
   }
 }
 
 code, pre, .monospace {
-  font-family: $font-mono !important;
+  font-family: $font-geist-mono !important;
 }
 
 // ============================================
@@ -100,10 +161,13 @@ code, pre, .monospace {
 .navbar,
 .navbar-default,
 .navbar-main,
-header.navbar {
-  background: $gray-900 !important;
+header.navbar,
+.ide-redesign-toolbar-header,
+.toolbar-header {
+  background: $ink-surface-1 !important;
   border: none !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important;
+  border-bottom: 1px solid $ink-border !important;
+  box-shadow: none !important;
   padding: 0 16px !important;
   min-height: 56px !important;
 }
@@ -113,20 +177,26 @@ header.navbar {
   align-items: center !important;
   text-decoration: none !important;
   padding: 8px 0 !important;
+  gap: 10px !important;
   
   .inkvell-logo {
-    height: 28px !important;
+    height: 24px !important;
     width: auto !important;
-    margin-right: 10px !important;
-    filter: invert(1) !important;
+    filter: brightness(0) invert(1) !important;
+    opacity: 0.9 !important;
+    transition: opacity 0.15s ease !important;
+  }
+  
+  &:hover .inkvell-logo {
+    opacity: 1 !important;
   }
   
   .navbar-title {
-    font-family: $font-sans !important;
+    font-family: $font-geist !important;
     font-weight: 600 !important;
-    font-size: 1.25rem !important;
-    color: $white !important;
-    letter-spacing: -0.01em !important;
+    font-size: 1.125rem !important;
+    color: $ink-text-primary !important;
+    letter-spacing: -0.02em !important;
   }
 }
 
@@ -136,24 +206,25 @@ header.navbar {
     > .nav-link,
     > .dropdown-toggle,
     > button {
-      font-family: $font-sans !important;
+      font-family: $font-geist !important;
       font-size: 0.875rem !important;
       font-weight: 500 !important;
-      color: rgba(255, 255, 255, 0.8) !important;
+      color: $ink-text-secondary !important;
       padding: 8px 12px !important;
       transition: color 0.15s ease !important;
       
       &:hover {
-        color: $white !important;
+        color: $ink-text-primary !important;
         text-decoration: none !important;
+        background: transparent !important;
       }
     }
   }
 }
 
 .navbar-toggler {
-  color: $white !important;
-  border: none !important;
+  color: $ink-text-primary !important;
+  border: 1px solid $ink-border !important;
 }
 
 // ============================================
@@ -161,7 +232,7 @@ header.navbar {
 // ============================================
 
 .btn {
-  font-family: $font-sans !important;
+  font-family: $font-geist !important;
   font-size: 0.875rem !important;
   font-weight: 500 !important;
   padding: 8px 16px !important;
@@ -172,66 +243,102 @@ header.navbar {
   
   &:focus {
     outline: none !important;
-    box-shadow: 0 0 0 2px $white, 0 0 0 4px $brand-accent !important;
+    box-shadow: 0 0 0 2px $ink-black, 0 0 0 4px $ink-accent !important;
   }
 }
 
 .btn-primary {
-  background: $gray-900 !important;
-  border-color: $gray-900 !important;
-  color: $white !important;
+  background: $ink-accent !important;
+  border-color: $ink-accent !important;
+  color: white !important;
   
-  &:hover {
-    background: $gray-800 !important;
-    border-color: $gray-800 !important;
+  &:hover,
+  &:focus {
+    background: $ink-accent-hover !important;
+    border-color: $ink-accent-hover !important;
+    color: white !important;
   }
   
   &:active {
-    background: $gray-700 !important;
+    background: darken($ink-accent, 10%) !important;
+  }
+  
+  &:disabled {
+    background: $ink-surface-3 !important;
+    border-color: $ink-surface-3 !important;
+    color: $ink-text-muted !important;
   }
 }
 
 .btn-secondary,
 .btn-default {
-  background: $white !important;
-  border-color: $gray-300 !important;
-  color: $gray-700 !important;
+  background: $ink-surface-2 !important;
+  border-color: $ink-border !important;
+  color: $ink-text-primary !important;
   
   &:hover {
-    background: $gray-50 !important;
-    border-color: $gray-400 !important;
+    background: $ink-surface-3 !important;
+    border-color: $ink-border-light !important;
+    color: $ink-text-primary !important;
   }
 }
 
 .btn-success {
-  background: $success !important;
-  border-color: $success !important;
-  color: $white !important;
+  background: $ink-success !important;
+  border-color: $ink-success !important;
+  color: white !important;
   
   &:hover {
-    background: darken($success, 5%) !important;
+    background: lighten($ink-success, 5%) !important;
   }
 }
 
 .btn-danger {
-  background: $danger !important;
-  border-color: $danger !important;
-  color: $white !important;
+  background: $ink-danger !important;
+  border-color: $ink-danger !important;
+  color: white !important;
   
   &:hover {
-    background: darken($danger, 5%) !important;
+    background: lighten($ink-danger, 5%) !important;
   }
 }
 
 .btn-link {
   background: transparent !important;
   border: none !important;
-  color: $brand-accent !important;
+  color: $ink-accent !important;
   padding: 0 !important;
   
   &:hover {
+    color: $ink-accent-hover !important;
     text-decoration: underline !important;
   }
+}
+
+// Compile button styling
+.compile-button-group {
+  .btn-primary {
+    background: $ink-accent !important;
+    
+    &.btn-striped-animated {
+      background: linear-gradient(
+        -45deg,
+        $ink-accent 25%,
+        lighten($ink-accent, 10%) 25%,
+        lighten($ink-accent, 10%) 50%,
+        $ink-accent 50%,
+        $ink-accent 75%,
+        lighten($ink-accent, 10%) 75%
+      ) !important;
+      background-size: 20px 20px !important;
+      animation: stripe-slide 1s linear infinite !important;
+    }
+  }
+}
+
+@keyframes stripe-slide {
+  0% { background-position: 0 0; }
+  100% { background-position: 20px 0; }
 }
 
 // ============================================
@@ -239,41 +346,36 @@ header.navbar {
 // ============================================
 
 #project-list-root,
-.project-list-page {
-  background: $gray-50 !important;
+.project-list-page,
+.project-dash-wrapper {
+  @include ink-grid-background;
   min-height: 100vh !important;
-}
-
-// Hide welcome message
-.welcome-message,
-.project-list-welcome-wrapper,
-.welcome-new-wrapper {
-  display: none !important;
 }
 
 // Main content area
 .project-list-main-react {
-  max-width: 1200px !important;
+  max-width: 1400px !important;
   margin: 0 auto !important;
   padding: 24px !important;
 }
 
 // Project table
-.project-list-table {
-  background: $white !important;
-  border-radius: 8px !important;
-  border: 1px solid $gray-200 !important;
+.project-list-table,
+.project-list-table-container {
+  background: $ink-surface-1 !important;
+  border-radius: 12px !important;
+  border: 1px solid $ink-border !important;
   overflow: hidden !important;
 }
 
 .project-list-table-row,
 [class*="project-list-table-row"] {
-  background: $white !important;
-  border-bottom: 1px solid $gray-100 !important;
+  background: $ink-surface-1 !important;
+  border-bottom: 1px solid $ink-border !important;
   transition: background 0.15s ease !important;
   
   &:hover {
-    background: $gray-50 !important;
+    background: $ink-surface-2 !important;
   }
   
   &:last-child {
@@ -283,13 +385,21 @@ header.navbar {
 
 .project-list-table-name-cell {
   a {
+    font-family: $font-geist !important;
     font-weight: 500 !important;
-    color: $gray-900 !important;
+    color: $ink-text-primary !important;
     
     &:hover {
-      color: $brand-accent !important;
+      color: $ink-accent !important;
     }
   }
+}
+
+th {
+  background: $ink-surface-2 !important;
+  color: $ink-text-secondary !important;
+  font-weight: 500 !important;
+  border-bottom: 1px solid $ink-border !important;
 }
 
 // ============================================
@@ -297,33 +407,34 @@ header.navbar {
 // ============================================
 
 .project-list-sidebar-wrapper,
-.project-list-sidebar {
-  background: $white !important;
-  border-right: 1px solid $gray-200 !important;
+.project-list-sidebar,
+.project-list-sidebar-v2 {
+  background: $ink-surface-1 !important;
+  border-right: 1px solid $ink-border !important;
   padding: 16px 0 !important;
 }
 
 .project-list-sidebar-item,
 .tag-menu-item,
 [class*="sidebar-item"] {
-  font-family: $font-sans !important;
+  font-family: $font-geist !important;
   font-size: 0.875rem !important;
   font-weight: 500 !important;
-  color: $gray-600 !important;
-  padding: 8px 16px !important;
+  color: $ink-text-secondary !important;
+  padding: 10px 16px !important;
   border-radius: 6px !important;
   margin: 2px 8px !important;
   transition: all 0.15s ease !important;
   
   &:hover {
-    background: $gray-100 !important;
-    color: $gray-900 !important;
+    background: $ink-surface-2 !important;
+    color: $ink-text-primary !important;
   }
   
   &.active,
   &[aria-current="true"] {
-    background: $gray-900 !important;
-    color: $white !important;
+    background: $ink-accent-muted !important;
+    color: $ink-accent !important;
   }
 }
 
@@ -338,31 +449,33 @@ input[type="password"],
 input[type="search"],
 textarea,
 select {
-  font-family: $font-sans !important;
+  font-family: $font-geist !important;
   font-size: 0.875rem !important;
-  background: $white !important;
-  border: 1px solid $gray-300 !important;
+  background: $ink-surface-2 !important;
+  border: 1px solid $ink-border !important;
   border-radius: 6px !important;
   padding: 10px 12px !important;
-  color: $gray-900 !important;
+  color: $ink-text-primary !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
   
   &:focus {
-    border-color: $brand-accent !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    background: $ink-surface-2 !important;
+    border-color: $ink-accent !important;
+    box-shadow: 0 0 0 3px $ink-accent-muted !important;
     outline: none !important;
+    color: $ink-text-primary !important;
   }
   
   &::placeholder {
-    color: $gray-400 !important;
+    color: $ink-text-tertiary !important;
   }
 }
 
 label {
-  font-family: $font-sans !important;
+  font-family: $font-geist !important;
   font-size: 0.875rem !important;
   font-weight: 500 !important;
-  color: $gray-700 !important;
+  color: $ink-text-secondary !important;
   margin-bottom: 6px !important;
   display: block !important;
 }
@@ -372,32 +485,35 @@ label {
 // ============================================
 
 .modal-backdrop {
-  background: rgba(0, 0, 0, 0.5) !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(4px) !important;
 }
 
 .modal-content {
-  background: $white !important;
-  border: none !important;
+  background: $ink-surface-1 !important;
+  border: 1px solid $ink-border !important;
   border-radius: 12px !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
   overflow: hidden !important;
 }
 
 .modal-header {
-  background: $white !important;
-  border-bottom: 1px solid $gray-200 !important;
+  background: $ink-surface-1 !important;
+  border-bottom: 1px solid $ink-border !important;
   padding: 20px 24px !important;
   
   .modal-title {
-    font-family: $font-sans !important;
+    font-family: $font-geist !important;
     font-weight: 600 !important;
     font-size: 1.125rem !important;
-    color: $gray-900 !important;
+    color: $ink-text-primary !important;
   }
   
   .btn-close,
   .close {
-    opacity: 0.5 !important;
+    color: $ink-text-secondary !important;
+    opacity: 0.7 !important;
+    filter: invert(1) !important;
     
     &:hover {
       opacity: 1 !important;
@@ -407,11 +523,12 @@ label {
 
 .modal-body {
   padding: 24px !important;
+  color: $ink-text-secondary !important;
 }
 
 .modal-footer {
-  background: $gray-50 !important;
-  border-top: 1px solid $gray-200 !important;
+  background: $ink-surface-2 !important;
+  border-top: 1px solid $ink-border !important;
   padding: 16px 24px !important;
 }
 
@@ -420,35 +537,45 @@ label {
 // ============================================
 
 .dropdown-menu {
-  background: $white !important;
-  border: 1px solid $gray-200 !important;
+  background: $ink-surface-2 !important;
+  border: 1px solid $ink-border !important;
   border-radius: 8px !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5) !important;
   padding: 4px !important;
   min-width: 180px !important;
 }
 
 .dropdown-item {
-  font-family: $font-sans !important;
+  font-family: $font-geist !important;
   font-size: 0.875rem !important;
-  color: $gray-700 !important;
+  color: $ink-text-secondary !important;
   padding: 8px 12px !important;
   border-radius: 4px !important;
   transition: background 0.15s ease !important;
   
   &:hover {
-    background: $gray-100 !important;
-    color: $gray-900 !important;
+    background: $ink-surface-3 !important;
+    color: $ink-text-primary !important;
   }
   
   &:active {
-    background: $gray-200 !important;
+    background: $ink-surface-4 !important;
   }
 }
 
 .dropdown-divider {
-  border-color: $gray-200 !important;
+  border-color: $ink-border !important;
   margin: 4px 0 !important;
+}
+
+.dropdown-header {
+  font-family: $font-geist !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: $ink-text-tertiary !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 8px 12px !important;
 }
 
 // ============================================
@@ -456,43 +583,64 @@ label {
 // ============================================
 
 .editor-container,
-.ide-react-main {
-  background: $white !important;
+.ide-react-main,
+.ide-react-body {
+  background: $ink-black !important;
 }
 
 // Toolbar
 .toolbar-header,
 .editor-header,
-.ide-header {
-  background: $gray-900 !important;
-  border-bottom: none !important;
+.ide-header,
+.ide-redesign-toolbar-header {
+  background: $ink-surface-1 !important;
+  border-bottom: 1px solid $ink-border !important;
   
   .toolbar-item,
   .btn {
-    color: $white !important;
+    color: $ink-text-secondary !important;
+    
+    &:hover {
+      color: $ink-text-primary !important;
+    }
+  }
+}
+
+// Toolbar logo
+.toolbar-ol-logo,
+.ide-redesign-toolbar-home-link {
+  .inkvell-logo,
+  img {
+    filter: brightness(0) invert(1) !important;
+    opacity: 0.9 !important;
   }
 }
 
 // File tree
 .file-tree,
+.file-tree-inner,
 [class*="file-tree"] {
-  background: $gray-50 !important;
-  border-right: 1px solid $gray-200 !important;
+  background: $ink-surface-1 !important;
+  border-right: 1px solid $ink-border !important;
   
-  .entity {
-    font-family: $font-mono !important;
+  .entity,
+  .file-tree-item {
+    font-family: $font-geist-mono !important;
     font-size: 0.8125rem !important;
     padding: 6px 12px !important;
     border-radius: 4px !important;
     margin: 1px 4px !important;
+    color: $ink-text-secondary !important;
     
     &:hover {
-      background: $gray-200 !important;
+      background: $ink-surface-2 !important;
+      color: $ink-text-primary !important;
     }
     
-    &.selected {
-      background: $gray-900 !important;
-      color: $white !important;
+    &.selected,
+    &[aria-selected="true"] {
+      background: $ink-accent-muted !important;
+      color: $ink-accent !important;
     }
   }
 }
@@ -500,16 +648,45 @@ label {
 // Code editor
 .cm-editor,
 .CodeMirror {
-  font-family: $font-mono !important;
+  font-family: $font-geist-mono !important;
   font-size: 14px !important;
   line-height: 1.6 !important;
-  background: $white !important;
+  background: $ink-black !important;
+  color: $ink-text-primary !important;
+  
+  .cm-gutters {
+    background: $ink-surface-1 !important;
+    border-right: 1px solid $ink-border !important;
+    color: $ink-text-tertiary !important;
+  }
+  
+  .cm-activeLineGutter {
+    background: $ink-surface-2 !important;
+  }
+  
+  .cm-activeLine {
+    background: rgba(255, 255, 255, 0.03) !important;
+  }
+  
+  .cm-cursor {
+    border-color: $ink-accent !important;
+  }
+  
+  .cm-selectionBackground {
+    background: $ink-accent-muted !important;
+  }
 }
 
 // PDF viewer
 .pdf-viewer,
-.pdf-content {
-  background: $gray-100 !important;
+.pdf-content,
+.pdf-preview-pane {
+  background: $ink-surface-1 !important;
+}
+
+.pdf-controls {
+  background: $ink-surface-2 !important;
+  border-bottom: 1px solid $ink-border !important;
 }
 
 // ============================================
@@ -517,27 +694,60 @@ label {
 // ============================================
 
 .loading-screen {
-  background: $white !important;
+  @include ink-grid-background;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
+  min-height: 100vh !important;
   
   .loading-screen-brand-container {
     text-align: center !important;
+    animation: fadeInUp 0.6s ease-out !important;
   }
   
   .loading-screen-brand {
-    width: 80px !important;
-    height: 80px !important;
-    background: url('../../public/img/brand/inkvell-logo.png') center / contain no-repeat !important;
-    margin: 0 auto 16px !important;
+    width: 64px !important;
+    height: 64px !important;
+    background: url('../../../../public/img/brand/inkvell-logo.png') center / contain no-repeat !important;
+    filter: brightness(0) invert(1) !important;
+    margin: 0 auto 24px !important;
+    animation: pulse-glow 2s ease-in-out infinite !important;
   }
   
   .loading-screen-label {
-    font-family: $font-sans !important;
+    font-family: $font-geist !important;
     font-size: 0.875rem !important;
-    color: $gray-500 !important;
+    font-weight: 500 !important;
+    color: $ink-text-secondary !important;
+    letter-spacing: 0.05em !important;
+  }
+  
+  .loading-screen-error {
+    color: $ink-danger !important;
+    margin-top: 16px !important;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.8;
+    filter: brightness(0) invert(1) drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(0) invert(1) drop-shadow(0 0 20px rgba(59, 130, 246, 0.4));
   }
 }
 
@@ -547,20 +757,26 @@ label {
 
 footer,
 .site-footer {
-  background: $gray-900 !important;
+  background: $ink-surface-1 !important;
+  border-top: 1px solid $ink-border !important;
   padding: 16px 0 !important;
   
   .footer-inner {
-    max-width: 1200px !important;
+    max-width: 1400px !important;
     margin: 0 auto !important;
     padding: 0 24px !important;
     text-align: center !important;
   }
   
-  .footer-copyright {
-    font-family: $font-sans !important;
+  .footer-copyright,
+  p, a, span {
+    font-family: $font-geist !important;
     font-size: 0.875rem !important;
-    color: $gray-400 !important;
+    color: $ink-text-tertiary !important;
+  }
+  
+  a:hover {
+    color: $ink-text-secondary !important;
   }
 }
 
@@ -571,10 +787,22 @@ footer,
 .card,
 .panel,
 [class*="page-content-card"] {
-  background: $white !important;
-  border: 1px solid $gray-200 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  background: $ink-surface-1 !important;
+  border: 1px solid $ink-border !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+.card-header,
+.panel-heading {
+  background: $ink-surface-2 !important;
+  border-bottom: 1px solid $ink-border !important;
+  color: $ink-text-primary !important;
+}
+
+.card-body,
+.panel-body {
+  color: $ink-text-secondary !important;
 }
 
 // ============================================
@@ -583,43 +811,77 @@ footer,
 
 .alert,
 .notification {
-  font-family: $font-sans !important;
+  font-family: $font-geist !important;
   border-radius: 8px !important;
   border: none !important;
   padding: 12px 16px !important;
 }
 
 .alert-success {
-  background: #ecfdf5 !important;
-  color: #065f46 !important;
+  background: $ink-success-bg !important;
+  color: $ink-success !important;
+  border: 1px solid rgba($ink-success, 0.2) !important;
 }
 
 .alert-danger,
 .alert-error {
-  background: #fef2f2 !important;
-  color: #991b1b !important;
+  background: $ink-danger-bg !important;
+  color: $ink-danger !important;
+  border: 1px solid rgba($ink-danger, 0.2) !important;
 }
 
 .alert-warning {
-  background: #fffbeb !important;
-  color: #92400e !important;
+  background: $ink-warning-bg !important;
+  color: $ink-warning !important;
+  border: 1px solid rgba($ink-warning, 0.2) !important;
 }
 
 .alert-info {
-  background: #eff6ff !important;
-  color: #1e40af !important;
+  background: $ink-info-bg !important;
+  color: $ink-info !important;
+  border: 1px solid rgba($ink-info, 0.2) !important;
 }
 
 // ============================================
-// BADGES
+// BADGES & PILLS
 // ============================================
 
 .badge {
-  font-family: $font-sans !important;
+  font-family: $font-geist !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
   padding: 4px 8px !important;
   border-radius: 4px !important;
+  background: $ink-surface-3 !important;
+  color: $ink-text-secondary !important;
+}
+
+// ============================================
+// TABS
+// ============================================
+
+.nav-tabs {
+  border-bottom: 1px solid $ink-border !important;
+  
+  .nav-link {
+    font-family: $font-geist !important;
+    color: $ink-text-secondary !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    padding: 12px 16px !important;
+    
+    &:hover {
+      color: $ink-text-primary !important;
+      border-color: transparent !important;
+      background: transparent !important;
+    }
+    
+    &.active {
+      color: $ink-accent !important;
+      background: transparent !important;
+      border-bottom-color: $ink-accent !important;
+    }
+  }
 }
 
 // ============================================
@@ -632,46 +894,253 @@ footer,
 }
 
 ::-webkit-scrollbar-track {
-  background: $gray-100 !important;
+  background: $ink-surface-1 !important;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: $gray-300 !important;
+  background: $ink-surface-3 !important;
   border-radius: 4px !important;
   
   &:hover {
-    background: $gray-400 !important;
+    background: $ink-surface-4 !important;
+  }
+}
+
+// Firefox scrollbar
+* {
+  scrollbar-width: thin;
+  scrollbar-color: $ink-surface-3 $ink-surface-1;
+}
+
+// ============================================
+// TOOLTIPS
+// ============================================
+
+.tooltip {
+  font-family: $font-geist !important;
+  font-size: 0.75rem !important;
+  
+  .tooltip-inner {
+    background: $ink-surface-3 !important;
+    color: $ink-text-primary !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  .tooltip-arrow::before {
+    border-top-color: $ink-surface-3 !important;
+    border-bottom-color: $ink-surface-3 !important;
   }
 }
 
 // ============================================
-// UTILITIES
+// SPINNER / LOADING STATES
 // ============================================
 
-// Ensure consistent backgrounds
-.content,
-.main-content,
-#main-content {
-  background: $gray-50 !important;
+.spinner-border,
+.loading-spinner {
+  color: $ink-accent !important;
 }
 
-// Remove any blue accent colors that don't fit
+.loading {
+  color: $ink-text-secondary !important;
+}
+
+// ============================================
+// SELECTION
+// ============================================
+
+::selection {
+  background: $ink-accent-muted !important;
+  color: $ink-text-primary !important;
+}
+
+// ============================================
+// FOCUS STATES
+// ============================================
+
+*:focus-visible {
+  outline: 2px solid $ink-accent !important;
+  outline-offset: 2px !important;
+}
+
+// ============================================
+// UTILITY OVERRIDES
+// ============================================
+
 .text-primary {
-  color: $gray-900 !important;
+  color: $ink-text-primary !important;
+}
+
+.text-secondary {
+  color: $ink-text-secondary !important;
+}
+
+.text-muted {
+  color: $ink-text-tertiary !important;
 }
 
 .bg-primary {
-  background: $gray-900 !important;
+  background: $ink-accent !important;
 }
 
-// Tooltip styling
-.tooltip {
-  font-family: $font-sans !important;
-  font-size: 0.75rem !important;
+.bg-light {
+  background: $ink-surface-1 !important;
+}
+
+.bg-dark {
+  background: $ink-black !important;
+}
+
+.border {
+  border-color: $ink-border !important;
+}
+
+// ============================================
+// OVERRIDE OL LOGO FOR INKVELL
+// ============================================
+
+.toolbar-ol-logo {
+  background-image: url('../../../../public/img/brand/inkvell-logo.png') !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  filter: brightness(0) invert(1) !important;
+}
+
+// Hide any remaining Overleaf branding
+[class*="overleaf-logo"],
+[class*="ol-logo"]:not(.toolbar-ol-logo) {
+  filter: brightness(0) invert(1) !important;
+}
+
+// ============================================
+// WELCOME PAGE
+// ============================================
+
+.welcome-message,
+.project-list-welcome-wrapper,
+.welcome-new-wrapper {
+  background: $ink-surface-1 !important;
+  border: 1px solid $ink-border !important;
+  border-radius: 12px !important;
+  color: $ink-text-primary !important;
   
-  .tooltip-inner {
-    background: $gray-900 !important;
-    border-radius: 4px !important;
-    padding: 6px 10px !important;
+  h1, h2, h3 {
+    color: $ink-text-primary !important;
+  }
+  
+  p {
+    color: $ink-text-secondary !important;
+  }
+}
+
+// ============================================
+// LOGIN / REGISTER PAGES
+// ============================================
+
+.login-page,
+.register-page,
+[class*="auth-page"] {
+  @include ink-grid-background;
+  min-height: 100vh !important;
+  
+  .card,
+  .auth-card {
+    background: $ink-surface-1 !important;
+    border: 1px solid $ink-border !important;
+  }
+}
+
+// ============================================
+// SPLIT PANES & RESIZERS
+// ============================================
+
+.split-pane-divider,
+.gutter,
+[class*="resize-handle"] {
+  background: $ink-border !important;
+  
+  &:hover {
+    background: $ink-accent !important;
+  }
+}
+
+// ============================================
+// CHAT & COLLABORATION
+// ============================================
+
+.chat-wrapper,
+.chat-pane {
+  background: $ink-surface-1 !important;
+  border-left: 1px solid $ink-border !important;
+}
+
+.chat-message {
+  background: $ink-surface-2 !important;
+  border-radius: 8px !important;
+  color: $ink-text-primary !important;
+}
+
+// ============================================
+// HISTORY PANEL
+// ============================================
+
+.history-wrapper,
+.history-panel {
+  background: $ink-surface-1 !important;
+  
+  .history-entry {
+    border-bottom: 1px solid $ink-border !important;
+    
+    &:hover {
+      background: $ink-surface-2 !important;
+    }
+  }
+}
+
+// ============================================
+// LOGS PANEL
+// ============================================
+
+.logs-pane,
+.pdf-logs-viewer {
+  background: $ink-surface-1 !important;
+  
+  .log-entry {
+    font-family: $font-geist-mono !important;
+    font-size: 0.8125rem !important;
+    border-bottom: 1px solid $ink-border !important;
+    
+    &.log-entry-error {
+      background: $ink-danger-bg !important;
+      border-left: 3px solid $ink-danger !important;
+    }
+    
+    &.log-entry-warning {
+      background: $ink-warning-bg !important;
+      border-left: 3px solid $ink-warning !important;
+    }
+  }
+}
+
+// ============================================
+// CONTEXT MENUS
+// ============================================
+
+.context-menu {
+  background: $ink-surface-2 !important;
+  border: 1px solid $ink-border !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5) !important;
+  
+  .context-menu-item {
+    color: $ink-text-secondary !important;
+    
+    &:hover {
+      background: $ink-surface-3 !important;
+      color: $ink-text-primary !important;
+    }
   }
 }

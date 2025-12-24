@@ -19,7 +19,17 @@ export const ToolbarLogos = ({ cobranding }: ToolbarLogosProps) => {
       >
         <div className="ide-redesign-toolbar-home-button">
           <a href="/project" className="ide-redesign-toolbar-home-link">
-            <span className="toolbar-ol-logo" aria-label={t('overleaf_logo')} />
+            <img 
+              src="/img/brand/inkvell-feather.svg"
+              alt="InkVell" 
+              className="toolbar-inkvell-logo"
+              style={{
+                height: '20px',
+                width: 'auto',
+                filter: 'brightness(0) invert(1)',
+                opacity: 0.9
+              }}
+            />
             <MaterialIcon type="home" className="toolbar-ol-home-button" />
           </a>
         </div>

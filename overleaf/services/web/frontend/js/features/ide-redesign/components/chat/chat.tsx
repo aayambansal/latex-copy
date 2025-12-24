@@ -1,113 +1,229 @@
-import ChatFallbackError from '@/features/chat/components/chat-fallback-error'
-import InfiniteScroll from '@/features/chat/components/infinite-scroll'
-import MessageInput from '@/features/chat/components/message-input'
-import { useChatContext } from '@/features/chat/context/chat-context'
-import { FetchError } from '@/infrastructure/fetch-json'
-import { FullSizeLoadingSpinner } from '@/shared/components/loading-spinner'
-import MaterialIcon from '@/shared/components/material-icon'
-import { useUserContext } from '@/shared/context/user-context'
-import { lazy, Suspense, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import classNames from 'classnames'
-import { RailIndicator } from '../rail/rail-indicator'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import { postJSON } from '@/infrastructure/fetch-json'
+import { useEditorOpenDocContext } from '@/features/ide-react/context/editor-open-doc-context'
+import { useEditorSelectionContext } from '@/shared/context/editor-selection-context'
+import { useEditorViewContext } from '@/features/ide-react/context/editor-view-context'
+import getMeta from '@/utils/meta'
 import RailPanelHeader from '../rail/rail-panel-header'
+import MaterialIcon from '@/shared/components/material-icon'
 
-const MessageList = lazy(() => import('../../../chat/components/message-list'))
-
-export const ChatIndicator = () => {
-  const { unreadMessageCount } = useChatContext()
-  if (unreadMessageCount === 0) {
-    return null
-  }
-  return <RailIndicator count={unreadMessageCount} type="info" />
+type AiTurn = {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  insert?: string | null
+  replace_selection?: string | null
 }
 
-const Loading = () => <FullSizeLoadingSpinner delay={500} className="pt-4" />
+export const ChatIndicator = () => null
 
 export const ChatPane = () => {
-  const { t } = useTranslation()
-  const user = useUserContext()
-  const {
-    status,
-    messages,
-    initialMessagesLoaded,
-    atEnd,
-    loadInitialMessages,
-    loadMoreMessages,
-    reset,
-    sendMessage,
-    markMessagesAsRead,
-    error,
-  } = useChatContext()
+  const projectId = getMeta('ol-project_id') as string | undefined
+  const { openDocName } = useEditorOpenDocContext()
+  const { editorSelection } = useEditorSelectionContext()
+  const { view } = useEditorViewContext()
 
-  useEffect(() => {
-    if (!initialMessagesLoaded) {
-      loadInitialMessages()
+  const [turns, setTurns] = useState<AiTurn[]>([
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content:
+        'InkVell AI (Claude) is ready. Ask anything about your document, then apply edits with **Insert** or **Replace selection**.',
+      insert: null,
+      replace_selection: null,
+    },
+  ])
+  const [prompt, setPrompt] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  const selectionRange = useMemo(() => {
+    const sel = editorSelection?.main
+    if (!sel) return null
+    return { from: sel.from, to: sel.to, head: sel.head }
+  }, [editorSelection])
+
+  const selectionText = useMemo(() => {
+    if (!view || !selectionRange) return ''
+    const { from, to } = selectionRange
+    if (from === to) return ''
+    return view.state.sliceDoc(from, to)
+  }, [view, selectionRange])
+
+  const docText = useMemo(() => {
+    if (!view) return ''
+    // Bound size for safety
+    const text = view.state.doc.toString()
+    return text.length > 60_000 ? text.slice(0, 60_000) : text
+  }, [view])
+
+  const send = useCallback(async () => {
+    const trimmed = prompt.trim()
+    if (!trimmed || isLoading) return
+
+    setError(null)
+    setIsLoading(true)
+
+    const userTurn: AiTurn = {
+      id: `u_${Date.now()}`,
+      role: 'user',
+      content: trimmed,
     }
-  }, [loadInitialMessages, initialMessagesLoaded])
+    setTurns(prev => [...prev, userTurn])
+    setPrompt('')
 
-  const shouldDisplayPlaceholder = status !== 'pending' && messages.length === 0
+    const controller = new AbortController()
+    abortRef.current = controller
 
-  if (error) {
-    // let user try recover from fetch errors
-    if (error instanceof FetchError) {
-      return <ChatFallbackError reconnect={reset} />
+    try {
+      const messages = [...turns, userTurn]
+        .filter(t => t.role === 'user' || t.role === 'assistant')
+        .map(t => ({ role: t.role, content: t.content }))
+
+      const response = await postJSON<{
+        reply_markdown: string
+        insert: string | null
+        replace_selection: string | null
+      }>('/api/ai/chat', {
+        signal: controller.signal,
+        body: {
+          messages,
+          context: {
+            projectId,
+            docName: openDocName,
+            selectionText,
+            docText,
+          },
+        },
+      })
+
+      const assistantTurn: AiTurn = {
+        id: `a_${Date.now()}`,
+        role: 'assistant',
+        content: response.reply_markdown,
+        insert: response.insert,
+        replace_selection: response.replace_selection,
+      }
+
+      setTurns(prev => [...prev, assistantTurn])
+    } catch (e: any) {
+      setError(e?.message || 'AI request failed')
+    } finally {
+      setIsLoading(false)
+      abortRef.current = null
     }
-    throw error
-  }
+  }, [prompt, isLoading, turns, projectId, openDocName, selectionText, docText])
 
-  if (!user) {
-    return null
-  }
+  const stop = useCallback(() => {
+    abortRef.current?.abort()
+  }, [])
 
-  return (
-    <div className="chat-panel">
-      <RailPanelHeader title={t('collaborator_chat')} />
-      <div className="chat-wrapper">
-        <aside className="chat" aria-label={t('chat')}>
-          <InfiniteScroll
-            atEnd={atEnd}
-            className="messages"
-            fetchData={loadMoreMessages}
-            isLoading={status === 'pending'}
-            itemCount={messages.length}
-          >
-            <div className={classNames({ 'h-100': shouldDisplayPlaceholder })}>
-              <h2 className="visually-hidden">{t('chat')}</h2>
-              <Suspense fallback={<Loading />}>
-                {status === 'pending' && <Loading />}
-                {shouldDisplayPlaceholder && <Placeholder />}
-                <MessageList
-                  messages={messages}
-                  resetUnreadMessages={markMessagesAsRead}
-                  newDesign
-                />
-              </Suspense>
-            </div>
-          </InfiniteScroll>
-          <MessageInput
-            resetUnreadMessages={markMessagesAsRead}
-            sendMessage={sendMessage}
-          />
-        </aside>
-      </div>
-    </div>
+  const applyInsert = useCallback(
+    (text: string) => {
+      if (!view) return
+      const head = selectionRange?.head ?? view.state.selection.main.head
+      view.dispatch({ changes: { from: head, to: head, insert: text } })
+      view.focus()
+    },
+    [view, selectionRange]
   )
-}
 
-function Placeholder() {
-  const { t } = useTranslation()
+  const applyReplaceSelection = useCallback(
+    (text: string) => {
+      if (!view) return
+      const range = selectionRange ?? view.state.selection.main
+      const from = 'from' in range ? range.from : view.state.selection.main.from
+      const to = 'to' in range ? range.to : view.state.selection.main.to
+      view.dispatch({ changes: { from, to, insert: text } })
+      view.focus()
+    },
+    [view, selectionRange]
+  )
+
   return (
-    <div className="chat-empty-state-placeholder">
-      <div>
-        <span className="chat-empty-state-icon">
-          <MaterialIcon type="forum" />
-        </span>
-      </div>
-      <div>
-        <div className="chat-empty-state-title">{t('no_messages_yet')}</div>
-        <div className="chat-empty-state-body">
-          {t('start_the_conversation_by_saying_hello_or_sharing_an_update')}
+    <div className="ai-panel">
+      <RailPanelHeader title="InkVell AI" />
+
+      <div className="ai-panel-body">
+        <div className="ai-messages" role="log" aria-live="polite">
+          {turns.map(turn => (
+            <div
+              key={turn.id}
+              className={`ai-turn ai-turn-${turn.role}`}
+              data-role={turn.role}
+            >
+              <div className="ai-turn-header">
+                <span className="ai-turn-role">
+                  {turn.role === 'user' ? 'You' : 'Claude'}
+                </span>
+              </div>
+
+              <div className="ai-turn-content">
+                <pre className="ai-turn-pre">{turn.content}</pre>
+              </div>
+
+              {turn.role === 'assistant' &&
+                (turn.insert || turn.replace_selection) && (
+                  <div className="ai-turn-actions">
+                    {turn.insert ? (
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => applyInsert(turn.insert!)}
+                      >
+                        <MaterialIcon type="input" />
+                        Insert
+                      </button>
+                    ) : null}
+
+                    {turn.replace_selection ? (
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() =>
+                          applyReplaceSelection(turn.replace_selection!)
+                        }
+                        disabled={!selectionRange || selectionRange.from === selectionRange.to}
+                      >
+                        <MaterialIcon type="edit" />
+                        Replace selection
+                      </button>
+                    ) : null}
+                  </div>
+                )}
+            </div>
+          ))}
+        </div>
+
+        {error ? <div className="ai-error">{error}</div> : null}
+
+        <div className="ai-composer">
+          <textarea
+            className="form-control ai-input"
+            value={prompt}
+            onChange={e => setPrompt(e.target.value)}
+            placeholder="Ask InkVell AI… (it can insert/replace your selection)"
+            rows={3}
+          />
+          <div className="ai-composer-actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={stop}
+              disabled={!isLoading}
+            >
+              Stop
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={send}
+              disabled={isLoading || !prompt.trim()}
+            >
+              {isLoading ? 'Thinking…' : 'Send'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

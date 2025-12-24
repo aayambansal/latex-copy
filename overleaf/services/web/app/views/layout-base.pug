@@ -24,6 +24,8 @@ html(
 		block css
 			each file in entrypointStyles(entrypoint)
 				link(rel='stylesheet' href=file)
+		//- InkVell Dark Theme Override (cache-busted)
+		link(rel='stylesheet' href='/css/inkvell-theme.css?v=10' id='inkvell-theme')
 
 		block _headLinks
 
@@ -97,6 +99,14 @@ html(
 				meta(name='ol-cannot-' + restriction data-type='boolean' content)
 
 		block head-scripts
+			//- InkVell AI Panel (Claude) - injected UI for editor pages
+			if entrypoint === 'pages/ide'
+				script(
+					type='text/javascript'
+					nonce=scriptNonce
+					src='/js/inkvell-ai.js'
+					defer
+				)
 
 	body(
 		class={

@@ -1,16 +1,81 @@
 @use 'sass:math';
 
+// ============================================
+// INKVELL LOADING SCREEN
+// Dark themed with grid pattern and animations
+// ============================================
+
+// Colors
+$ink-black: #0a0a0a;
+$ink-surface-1: #121212;
+$ink-text-primary: #fafafa;
+$ink-text-secondary: #a1a1a1;
+$ink-accent: #3b82f6;
+$ink-danger: #ef4444;
+$ink-grid-line: rgba(255, 255, 255, 0.03);
+
+// Fonts
+$font-geist: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+// Grid background mixin
+@mixin ink-grid-background {
+  background-color: $ink-black;
+  background-image:
+    linear-gradient(to right, $ink-grid-line 1px, transparent 1px),
+    linear-gradient(to bottom, $ink-grid-line 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+// Animations
 @keyframes blink {
   0% {
-    opacity: 0.2;
+    opacity: 0.3;
   }
-
-  20% {
+  50% {
     opacity: 1;
   }
-
   100% {
-    opacity: 0.2;
+    opacity: 0.3;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.7;
+    filter: brightness(0) invert(1) drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(0) invert(1) drop-shadow(0 0 30px rgba(59, 130, 246, 0.5));
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -21,37 +86,76 @@
   align-items: center;
   width: 100%;
   height: 100%;
-  background-color: #ffffff;
+  min-height: 100vh;
+  @include ink-grid-background;
+  position: relative;
+  overflow: hidden;
+
+  // Subtle radial gradient overlay for depth
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 800px;
+    height: 800px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+      circle,
+      rgba(59, 130, 246, 0.05) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+  }
 
   .loading-screen-brand-container {
     min-width: 200px;
     text-align: center;
+    animation: fadeInUp 0.8s ease-out;
+    position: relative;
+    z-index: 1;
   }
 
   .loading-screen-brand {
     position: relative;
-    width: 80px;
-    height: 80px;
-    margin: 0 auto;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 32px;
     background: url(../../../../public/img/brand/inkvell-logo.png)
       no-repeat center / contain;
+    filter: brightness(0) invert(1);
+    animation: pulse-glow 2.5s ease-in-out infinite;
 
+    // Remove old overlay
     &::after {
       display: none;
     }
   }
 
+  // Brand text
+  .loading-screen-brand-text {
+    font-family: $font-geist;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: $ink-text-primary;
+    letter-spacing: 0.1em;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+
   .loading-screen-label {
     margin: 0;
-    padding-top: var(--spacing-09);
-    font-family: 'Inter', -apple-system, sans-serif;
+    padding-top: 0;
+    font-family: $font-geist;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #6b7280;
+    color: $ink-text-secondary;
+    letter-spacing: 0.02em;
   }
 
   .loading-screen-ellip {
-    animation: blink 1.4s both infinite;
+    animation: blink 1.4s ease-in-out both infinite;
+    color: $ink-accent;
 
     &:nth-child(2) {
       animation-delay: 0.2s;
@@ -64,7 +168,44 @@
 
   .loading-screen-error {
     margin: 0;
-    padding-top: var(--spacing-06);
-    color: #dc2626;
+    padding-top: 24px;
+    font-family: $font-geist;
+    font-size: 0.875rem;
+    color: $ink-danger;
   }
+
+  // Progress bar (if present)
+  .loading-screen-progress {
+    width: 200px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    margin-top: 24px;
+    overflow: hidden;
+    
+    &-bar {
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        $ink-accent,
+        lighten($ink-accent, 15%),
+        $ink-accent
+      );
+      background-size: 200% 100%;
+      animation: shimmer 2s ease-in-out infinite;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+  }
+}
+
+// Alternative spinner-based loading
+.loading-screen-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid $ink-surface-1;
+  border-top-color: $ink-accent;
+  border-radius: 50%;
+  animation: rotate 1s linear infinite;
+  margin-bottom: 24px;
 }

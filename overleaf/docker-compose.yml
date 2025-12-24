@@ -14,9 +14,14 @@ services:
         stop_grace_period: 60s
         volumes:
             - ~/inkvell_data:/var/lib/overleaf
-            # Mount only views and config files we changed for branding
+            # Mount views and config files for branding
             - ./services/web/app/views:/overleaf/services/web/app/views
             - ./services/web/config:/overleaf/services/web/config
+            # Mount public assets (images, manifest, CSS)
+            - ./services/web/public/img/brand:/overleaf/services/web/public/img/brand
+            - ./services/web/public/web.sitemanifest:/overleaf/services/web/public/web.sitemanifest
+            - ./services/web/public/css:/overleaf/services/web/public/css
+            - ./services/web/public/js:/overleaf/services/web/public/js
             ########################################################################
             ####  Uncomment the following line to mount the docker socket,    ####
             ####  required for Sibling Containers to work                      ####
@@ -25,6 +30,10 @@ services:
         environment:
 
             OVERLEAF_APP_NAME: InkVell
+            # InkVell AI (Claude)
+            # Set this in your shell environment: export ANTHROPIC_API_KEY=...
+            ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+            ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-3-5-sonnet-latest}
 
             OVERLEAF_MONGO_URL: mongodb://mongo/inkvell
             

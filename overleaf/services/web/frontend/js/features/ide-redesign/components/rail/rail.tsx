@@ -8,7 +8,6 @@ import { ChatIndicator, ChatPane } from '../chat/chat'
 import getMeta from '@/utils/meta'
 import classNames from 'classnames'
 import IntegrationsPanel from '../integrations-panel/integrations-panel'
-import { useChatContext } from '@/features/chat/context/chat-context'
 import { useEditorAnalytics } from '@/shared/hooks/use-editor-analytics'
 import {
   FullProjectSearchPanel,
@@ -60,8 +59,6 @@ export const RailLayout = () => {
 
   const { view, setLeftMenuShown } = useLayoutContext()
 
-  const { markMessagesAsRead } = useChatContext()
-
   const isHistoryView = view === 'history'
 
   const fileTreeRef = useRef<HTMLAnchorElement>(null)
@@ -102,11 +99,12 @@ export const RailLayout = () => {
       },
       {
         key: 'chat',
-        icon: 'forum',
+        icon: 'auto_awesome',
         component: <ChatPane />,
         indicator: <ChatIndicator />,
-        title: t('chat'),
-        hide: !getMeta('ol-capabilities')?.includes('chat'),
+        title: 'AI',
+        // Always show AI panel
+        hide: false,
       },
       ...moduleRailEntries,
     ],
@@ -179,11 +177,11 @@ export const RailLayout = () => {
         }
 
         if (key === 'chat') {
-          markMessagesAsRead()
+          // no-op (AI panel has no unread state)
         }
       }
     },
-    [openTab, togglePane, selectedTab, railTabs, sendEvent, markMessagesAsRead]
+    [openTab, togglePane, selectedTab, railTabs, sendEvent]
   )
 
   useEffect(() => {
